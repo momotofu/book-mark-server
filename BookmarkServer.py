@@ -33,15 +33,10 @@ def CheckURI(uri, timeout=5):
     False if that GET request returns any other response, or doesn't return
     (i.e. times out).
     '''
-
-    unpacked_uri = urlparse(uri)
-    if unpacked_uri.scheme and unpacked_uri.netloc:
-        response = requests.get(uri)
-        if response.status_code == 200:
-            return True
-        else:
-            return False
-    else:
+    try:
+        r = requests.get(uri, timeout=timeout)
+        return r.status_code == 200
+    except request.RequestException:
         return False
 
 class Shortener(http.server.BaseHTTPRequestHandler):
@@ -83,6 +78,7 @@ class Shortener(http.server.BaseHTTPRequestHandler):
             self.send_header('Content-type', 'text/plain; charset=utf-8')
             self.end_headers()
             self.wfile.write('missing params: longuir or shortname'.encode())
+            return
 
         longuri = params["longuri"][0]
         shortname = params["shortname"][0]
